@@ -104,6 +104,8 @@
     .toast { position: fixed; bottom: 22px; left: 50%; z-index: 2; max-width: calc(100% - 36px); padding: 10px 13px; border-radius: 8px; background: var(--ink); color: var(--paper); box-shadow: var(--shadow); font-size: 12px; opacity: 0; pointer-events: none; transform: translate(-50%, 16px); transition: .2s ease; }
     .toast.show { opacity: 1; transform: translate(-50%, 0); }
     @media (max-width: 650px) { .wrap { width: calc(100% - 28px); } .topbar { min-height: 64px; } main { padding-top: 50px; } .guide { grid-template-columns: 1fr; margin-top: 40px; } .guide-item { min-height: 0; padding: 16px 18px; } .guide-item + .guide-item { border-top: 1px solid var(--line); border-left: 0; } .stage { min-height: 360px; } .recorder-head { padding: 0 15px; } .trim { padding: 20px 16px; } .range { grid-template-columns: 54px minmax(0, 1fr) 44px; gap: 8px; } .trim-foot { align-items: flex-start; flex-direction: column; } .export { width: 100%; } }
+    html { scrollbar-width: none; }
+    html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; width: 0; height: 0; }
     ::selection { background: #bfeee7; color: #131515; }
     html[data-theme="dark"] ::selection { background: #339989; color: #fffafb; }
   </style>
@@ -166,11 +168,10 @@
       async function startRecording() {
         if (!navigator.mediaDevices?.getDisplayMedia || !window.MediaRecorder) { notify('Screen recording needs a current Chrome or Edge browser.'); return; }
         try {
-          stream = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: 30 }, audio: false });
+          stream = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: 30, cursor: "never" }, audio: false });
           const videoTrack = stream.getVideoTracks()[0];
-          if (navigator.mediaDevices.getSupportedConstraints?.().cursor) { try { await videoTrack.applyConstraints({ cursor: "never" }); } catch (_) {} }
           const cursorState = videoTrack.getSettings?.().cursor;
-          if (cursorState && cursorState !== "never") notify("This browser source may include your cursor.");
+          if (cursorState && cursorState !== "never") notify("This browser source does not support hiding the cursor.");
           const chunks = []; const type = mime(); recorder = new MediaRecorder(stream, type ? { mimeType: type, videoBitsPerSecond: 8_000_000 } : undefined);
           recorder.ondataavailable = event => { if (event.data.size) chunks.push(event.data); };
           recorder.onstop = () => {
